@@ -1,38 +1,52 @@
-import os
 import datetime
+import os
 import tempfile
 from pathlib import Path
 
+from PyQt6.QtCore import QThread, Qt, pyqtSignal
+from PyQt6.QtGui import QAction, QKeySequence, QPixmap, QShortcut
 from PyQt6.QtWidgets import (
-    QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QPushButton,
-    QLabel, QFileDialog, QMessageBox, QStatusBar, QToolBar,
-    QSplitter, QApplication, QTextEdit,
+    QApplication,
+    QCheckBox,
+    QFileDialog,
+    QLabel,
+    QMainWindow,
+    QMessageBox,
+    QPushButton,
+    QSplitter,
+    QStatusBar,
+    QTextEdit,
+    QToolBar,
+    QVBoxLayout,
+    QWidget,
 )
-from PyQt6.QtCore import Qt, QThread, pyqtSignal
-from PyQt6.QtGui import QPixmap, QAction, QKeySequence, QShortcut
 
-from src.utils import config
-from src.utils.image_utils import base64_to_qpixmap, base64_to_pil, save_image
-from src.gui.widgets import ImageDropLabel
 from src.gui.settings_dialog import SettingsDialog
+from src.gui.widgets import ImageDropLabel
+from src.utils import config
+from src.utils.image_utils import base64_to_pil, base64_to_qpixmap, save_image
 
 
 class ProcessWorker(QThread):
     """Worker thread for streaming image processing via API."""
-    text_chunk = pyqtSignal(str)   # streaming text delta
-    finished = pyqtSignal(str)     # base64 image result
-    error = pyqtSignal(str)        # error message
 
-    def __init__(self, image_path: str):
+    text_chunk = pyqtSignal(str)
+    finished = pyqtSignal(str)
+    error = pyqtSignal(str)
+
+    def __init__(self, image_path: str, color_mode: str = "grayscale"):
         super().__init__()
         self._image_path = image_path
+        self._color_mode = color_mode
 
     def run(self):
         try:
             from src.api.client import process_image_stream
+
             result = process_image_stream(
                 self._image_path,
                 on_text=self.text_chunk.emit,
+                color_mode=self._color_mode,
             )
             self.finished.emit(result)
         except Exception as e:
@@ -40,7 +54,6 @@ class ProcessWorker(QThread):
 
 
 def _section_label(text: str) -> QLabel:
-    """Create a styled uppercase section header label."""
     label = QLabel(text)
     label.setObjectName("sectionLabel")
     return label
@@ -57,18 +70,18 @@ class MainWindow(QMainWindow):
         self._build_ui()
 
     def _build_ui(self):
-        # -- Toolbar --
         toolbar = QToolBar()
         toolbar.setMovable(False)
 
-        # App title in toolbar
         title = QLabel("  SharpPic-AI")
         title.setStyleSheet("font-size: 20px; font-weight: 700; color: #00D4AA; padding-right: 16px;")
         toolbar.addWidget(title)
 
         spacer = QWidget()
-        spacer.setSizePolicy(spacer.sizePolicy().horizontalPolicy().Expanding,
-                             spacer.sizePolicy().verticalPolicy().Preferred)
+        spacer.setSizePolicy(
+            spacer.sizePolicy().horizontalPolicy().Expanding,
+            spacer.sizePolicy().verticalPolicy().Preferred,
+        )
         toolbar.addWidget(spacer)
 
         settings_action = QAction("  设置  ", self)
@@ -76,7 +89,6 @@ class MainWindow(QMainWindow):
         toolbar.addAction(settings_action)
         self.addToolBar(toolbar)
 
-        # -- Central widget --
         central = QWidget()
         self.setCentralWidget(central)
         main_layout = QVBoxLayout(central)
@@ -85,7 +97,6 @@ class MainWindow(QMainWindow):
         splitter = QSplitter(Qt.Orientation.Horizontal)
         main_layout.addWidget(splitter)
 
-        # -- Left panel --
         left = QWidget()
         left_layout = QVBoxLayout(left)
         left_layout.setContentsMargins(5, 0, 10, 0)
@@ -105,16 +116,18 @@ class MainWindow(QMainWindow):
         select_btn.clicked.connect(self._select_file)
         left_layout.addWidget(select_btn)
 
-        # Ctrl+V paste shortcut
         paste_shortcut = QShortcut(QKeySequence.StandardKey.Paste, self)
         paste_shortcut.activated.connect(self._paste_from_clipboard)
+
+        self._color_checkbox = QCheckBox("生成彩图")
+        self._color_checkbox.setChecked(False)
+        left_layout.addWidget(self._color_checkbox)
 
         self._process_btn = QPushButton("开始处理")
         self._process_btn.setObjectName("primaryBtn")
         self._process_btn.clicked.connect(self._start_process)
         left_layout.addWidget(self._process_btn)
 
-        # Output text below source image
         left_layout.addWidget(_section_label("实时信息"))
 
         self._output_text = QTextEdit()
@@ -124,7 +137,6 @@ class MainWindow(QMainWindow):
 
         splitter.addWidget(left)
 
-        # -- Right panel --
         right = QWidget()
         right_layout = QVBoxLayout(right)
         right_layout.setContentsMargins(10, 0, 5, 0)
@@ -146,12 +158,9 @@ class MainWindow(QMainWindow):
         splitter.addWidget(right)
         splitter.setSizes([420, 780])
 
-        # -- Status bar --
         self._status = QStatusBar()
         self.setStatusBar(self._status)
         self._status.showMessage("就绪")
-
-    # -- Slots --
 
     def _open_settings(self):
         dlg = SettingsDialog(self)
@@ -159,7 +168,8 @@ class MainWindow(QMainWindow):
 
     def _select_file(self):
         path, _ = QFileDialog.getOpenFileName(
-            self, "选择图片",
+            self,
+            "选择图片",
             "",
             "图片文件 (*.png *.jpg *.jpeg *.bmp *.gif *.webp);;所有文件 (*)",
         )
@@ -176,9 +186,7 @@ class MainWindow(QMainWindow):
         if mimedata.hasUrls():
             for url in mimedata.urls():
                 path = url.toLocalFile()
-                if path and path.lower().endswith(
-                    (".png", ".jpg", ".jpeg", ".bmp", ".gif", ".webp")
-                ):
+                if path and path.lower().endswith((".png", ".jpg", ".jpeg", ".bmp", ".gif", ".webp")):
                     self._load_source(path)
                     return
 
@@ -196,7 +204,6 @@ class MainWindow(QMainWindow):
             self._result_label.clear_image()
             self._result_b64 = None
             self._save_btn.setEnabled(False)
-            return
 
     def _load_source(self, path: str):
         self._source_path = path
@@ -231,7 +238,8 @@ class MainWindow(QMainWindow):
         self._output_text.clear()
         self._status.showMessage("正在处理图片，请稍候...")
 
-        self._worker = ProcessWorker(self._source_path)
+        color_mode = "color" if self._color_checkbox.isChecked() else "grayscale"
+        self._worker = ProcessWorker(self._source_path, color_mode=color_mode)
         self._worker.text_chunk.connect(self._on_text_chunk)
         self._worker.finished.connect(self._on_process_done)
         self._worker.error.connect(self._on_process_error)
@@ -275,7 +283,9 @@ class MainWindow(QMainWindow):
         default_path = str(Path(save_dir) / default_name)
 
         path, _ = QFileDialog.getSaveFileName(
-            self, "保存图片", default_path,
+            self,
+            "保存图片",
+            default_path,
             "PNG (*.png);;JPEG (*.jpg);;所有文件 (*)",
         )
         if not path:
