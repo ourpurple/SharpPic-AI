@@ -115,35 +115,46 @@ QToolBar QToolButton:pressed {{
 /* --- Tabs --- */
 QTabWidget::pane {{
     border: 1px solid {BORDER};
-    border-radius: 12px;
+    border-radius: 14px;
     background: {BG_DARK};
-    top: -1px;
+    margin-top: 14px;
 }}
 QTabWidget::tab-bar {{
     alignment: left;
+    left: 12px;
+}}
+QTabBar {{
+    background: {BG_PANEL};
+    border: 1px solid {BORDER_SUBTLE};
+    border-radius: 13px;
+    padding: 5px;
 }}
 QTabBar::tab {{
-    background: {BG_PANEL};
+    background: transparent;
     color: {TEXT_SECONDARY};
-    border: 1px solid {BORDER};
-    border-bottom: none;
-    border-top-left-radius: 10px;
-    border-top-right-radius: 10px;
-    padding: 10px 22px;
-    margin-right: 6px;
+    border: 1px solid transparent;
+    border-radius: 10px;
+    padding: 10px 24px;
+    margin-right: 4px;
+    min-width: 72px;
     font-size: 16px;
-    font-weight: 600;
+    font-weight: 700;
+}}
+QTabBar::tab:last {{
+    margin-right: 0px;
 }}
 QTabBar::tab:hover {{
     background: {BG_HOVER};
     color: {TEXT_PRIMARY};
 }}
 QTabBar::tab:selected {{
-    background: {BG_DARK};
-    color: {ACCENT};
-    border-color: {ACCENT_DIM};
+    background: {ACCENT};
+    color: {TEXT_ON_ACCENT};
+    border-color: {ACCENT_HOVER};
 }}
-
+QTabBar::tab:selected:hover {{
+    background: {ACCENT_HOVER};
+}}
 /* --- Section Labels --- */
 QLabel#sectionLabel {{
     color: {TEXT_SECONDARY};
@@ -243,19 +254,8 @@ QCheckBox {{
     spacing: 8px;
     font-size: 15px;
 }}
-QCheckBox::indicator {{
-    width: 18px;
-    height: 18px;
-    border: 1px solid {BORDER};
-    border-radius: 4px;
-    background: {BG_INPUT};
-}}
-QCheckBox::indicator:checked {{
-    background: {ACCENT};
-    border-color: {ACCENT};
-}}
-QCheckBox::indicator:hover {{
-    border-color: {ACCENT_DIM};
+QCheckBox:checked {{
+    color: {TEXT_PRIMARY};
 }}
 
 /* --- ComboBox --- */
@@ -420,3 +420,4 @@ QMenu::separator {{
     margin: 8px 13px;
 }}
 """
+
