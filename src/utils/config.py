@@ -1,4 +1,4 @@
-import json
+﻿import json
 import logging
 from pathlib import Path
 
@@ -15,6 +15,12 @@ _DEFAULTS = {
     "gmi_api_key": "",
     "gmi_image_size": "4K",
     "gmi_aspect_ratio": "",
+    # generate-image defaults
+    "gen_color_mode": "彩色图",
+    "gen_resolution": "1K",
+    "gen_aspect_ratio": "1:1",
+    "gen_style": "写实",
+    "gen_custom_style": "",
 }
 
 _config: dict = {}
@@ -79,4 +85,3 @@ def get_all() -> dict:
     if not _config:
         load()
     return dict(_config)
-

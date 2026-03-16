@@ -1,11 +1,11 @@
-import base64
+﻿import base64
 import re
 from collections.abc import Callable
 
 import httpx
 from openai import OpenAI
 
-from src.core.prompts import get_system_prompt, get_user_message
+from src.core.prompts import build_generate_prompt, get_system_prompt, get_user_message
 from src.utils import config
 from src.utils.image_utils import extract_base64_from_text, get_mime_type, image_to_base64
 
@@ -87,6 +87,23 @@ def _extract_text_from_delta_content(content: object) -> str:
     return ""
 
 
+def _extract_image_from_text_or_raise(full_text: str, on_text: Callable[[str], None], error_prefix: str) -> str:
+    image_b64 = extract_base64_from_text(full_text)
+    if image_b64:
+        return image_b64
+
+    url_match = re.search(r"https?://\S+", full_text)
+    if url_match:
+        url = url_match.group(0).rstrip(")")
+        on_text("📥 正在下载结果图片...\n")
+        return _download_image_url(url)
+
+    raise RuntimeError(
+        f"{error_prefix}未找到图片数据。模型可能不支持图片生成，请检查模型设置。\n\n"
+        f"模型回复内容:\n{full_text}"
+    )
+
+
 def process_image_stream(
     image_path: str,
     on_text: Callable[[str], None],
@@ -132,20 +149,64 @@ def process_image_stream(
     if collected_images:
         return collected_images[0]
 
-    image_b64 = extract_base64_from_text(full_text)
-    if image_b64:
-        return image_b64
+    return _extract_image_from_text_or_raise(full_text, on_text, "API 响应中")
 
-    url_match = re.search(r"https?://\S+", full_text)
-    if url_match:
-        url = url_match.group(0).rstrip(")")
-        on_text("📥 正在下载结果图片...\n")
-        return _download_image_url(url)
 
-    raise RuntimeError(
-        "API 响应中未找到图片数据。模型可能不支持图片生成，请检查模型设置。\n\n"
-        f"模型回复内容:\n{full_text}"
+def generate_image_stream(
+    prompt: str,
+    on_text: Callable[[str], None],
+    color_mode: str,
+    resolution: str,
+    aspect_ratio: str,
+    style: str,
+    custom_style: str = "",
+) -> str:
+    provider = config.get("api_provider") or "openai"
+    merged_prompt = build_generate_prompt(prompt, color_mode, resolution, aspect_ratio, style, custom_style)
+
+    if provider == "gmicloud":
+        from src.api.gmi_client import generate_image as gmi_generate
+
+        return gmi_generate(
+            prompt=merged_prompt,
+            on_text=on_text,
+            resolution=resolution,
+            aspect_ratio=aspect_ratio,
+        )
+
+    client = _build_client()
+    on_text("🚀 正在提交生图请求...\n")
+
+    messages = [{"role": "user", "content": merged_prompt}]
+    stream = client.chat.completions.create(
+        model=config.get("model_name"),
+        messages=messages,
+        stream=True,
     )
+
+    full_text = ""
+    collected_images: list[str] = []
+
+    for chunk in stream:
+        if not chunk.choices:
+            continue
+
+        delta = chunk.choices[0].delta
+
+        text_delta = _extract_text_from_delta_content(delta.content)
+        if text_delta:
+            full_text += text_delta
+            on_text(text_delta)
+
+        if hasattr(delta, "model_extra") and delta.model_extra:
+            collected_images.extend(_extract_images_from_extra(delta.model_extra))
+
+    on_text("\n✨ 生图完成，正在整理结果...\n")
+
+    if collected_images:
+        return collected_images[0]
+
+    return _extract_image_from_text_or_raise(full_text, on_text, "生图响应中")
 
 
 def _download_image_url(url: str) -> str:

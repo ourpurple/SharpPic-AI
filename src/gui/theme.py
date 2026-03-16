@@ -1,11 +1,11 @@
-"""
+﻿"""
 SharpPic-AI — Dark Precision Lab Theme
 
 A sophisticated dark interface inspired by professional image-processing tools.
 Deep charcoal backgrounds, vivid teal accents, clean geometric lines.
 """
 
-# ── Color Palette ──────────────────────────────────────────────
+# -- Color Palette ------------------------------------------------
 BG_DARKEST = "#131419"
 BG_DARK = "#1a1b23"
 BG_PANEL = "#22232d"
@@ -35,7 +35,7 @@ SCROLLBAR_BG = BG_DARK
 SCROLLBAR_HANDLE = "#3a3c4a"
 SCROLLBAR_HOVER = "#4a4d5e"
 
-# ── Drop Zone ──────────────────────────────────────────────────
+# -- Drop Zone ----------------------------------------------------
 DROP_ZONE_DEFAULT = f"""
     QLabel {{
         border: 2px dashed {TEXT_MUTED};
@@ -69,10 +69,10 @@ DROP_ZONE_IMAGE = f"""
     }}
 """
 
-# ── Global Application QSS ────────────────────────────────────
+# -- Global Application QSS --------------------------------------
 APP_STYLESHEET = f"""
 
-/* ─── Base ─────────────────────────────────────────── */
+/* --- Base --- */
 QMainWindow, QDialog {{
     background: {BG_DARK};
     color: {TEXT_PRIMARY};
@@ -85,7 +85,7 @@ QWidget {{
     font-family: "Segoe UI", "Microsoft YaHei UI", sans-serif;
 }}
 
-/* ─── Toolbar ──────────────────────────────────────── */
+/* --- Toolbar --- */
 QToolBar {{
     background: {BG_DARKEST};
     border: none;
@@ -112,7 +112,39 @@ QToolBar QToolButton:pressed {{
     background: {BG_PRESSED};
 }}
 
-/* ─── Section Labels ───────────────────────────────── */
+/* --- Tabs --- */
+QTabWidget::pane {{
+    border: 1px solid {BORDER};
+    border-radius: 12px;
+    background: {BG_DARK};
+    top: -1px;
+}}
+QTabWidget::tab-bar {{
+    alignment: left;
+}}
+QTabBar::tab {{
+    background: {BG_PANEL};
+    color: {TEXT_SECONDARY};
+    border: 1px solid {BORDER};
+    border-bottom: none;
+    border-top-left-radius: 10px;
+    border-top-right-radius: 10px;
+    padding: 10px 22px;
+    margin-right: 6px;
+    font-size: 16px;
+    font-weight: 600;
+}}
+QTabBar::tab:hover {{
+    background: {BG_HOVER};
+    color: {TEXT_PRIMARY};
+}}
+QTabBar::tab:selected {{
+    background: {BG_DARK};
+    color: {ACCENT};
+    border-color: {ACCENT_DIM};
+}}
+
+/* --- Section Labels --- */
 QLabel#sectionLabel {{
     color: {TEXT_SECONDARY};
     font-size: 14px;
@@ -124,7 +156,7 @@ QLabel#sectionLabel {{
     margin-bottom: 5px;
 }}
 
-/* ─── Buttons ──────────────────────────────────────── */
+/* --- Buttons --- */
 QPushButton {{
     background: {BG_INPUT};
     color: {TEXT_PRIMARY};
@@ -147,7 +179,6 @@ QPushButton:disabled {{
     border-color: {BORDER_SUBTLE};
 }}
 
-/* Primary action button */
 QPushButton#primaryBtn {{
     background: {ACCENT};
     color: {TEXT_ON_ACCENT};
@@ -167,7 +198,6 @@ QPushButton#primaryBtn:disabled {{
     color: {BG_DARK};
 }}
 
-/* Save / success button */
 QPushButton#successBtn {{
     background: transparent;
     color: {ACCENT};
@@ -183,7 +213,6 @@ QPushButton#successBtn:disabled {{
     background: transparent;
 }}
 
-/* Compact inline button */
 QPushButton#compactBtn {{
     padding: 8px 18px;
     font-size: 16px;
@@ -191,7 +220,7 @@ QPushButton#compactBtn {{
     border-radius: 8px;
 }}
 
-/* ─── Line Edit ────────────────────────────────────── */
+/* --- Line Edit --- */
 QLineEdit {{
     background: {BG_INPUT};
     color: {TEXT_PRIMARY};
@@ -208,7 +237,28 @@ QLineEdit::placeholder {{
     color: {TEXT_MUTED};
 }}
 
-/* ─── ComboBox ─────────────────────────────────────── */
+/* --- CheckBox --- */
+QCheckBox {{
+    color: {TEXT_SECONDARY};
+    spacing: 8px;
+    font-size: 15px;
+}}
+QCheckBox::indicator {{
+    width: 18px;
+    height: 18px;
+    border: 1px solid {BORDER};
+    border-radius: 4px;
+    background: {BG_INPUT};
+}}
+QCheckBox::indicator:checked {{
+    background: {ACCENT};
+    border-color: {ACCENT};
+}}
+QCheckBox::indicator:hover {{
+    border-color: {ACCENT_DIM};
+}}
+
+/* --- ComboBox --- */
 QComboBox {{
     background: {BG_INPUT};
     color: {TEXT_PRIMARY};
@@ -243,7 +293,7 @@ QComboBox QAbstractItemView {{
     outline: none;
 }}
 
-/* ─── Text Edit (output console) ───────────────────── */
+/* --- Text Edit --- */
 QTextEdit {{
     background: {BG_DARKEST};
     color: {TEXT_SECONDARY};
@@ -258,23 +308,23 @@ QTextEdit[readOnly="true"] {{
     background: {BG_DARKEST};
 }}
 
-/* ─── Splitter ─────────────────────────────────────── */
+/* --- Splitter --- */
 QSplitter::handle {{
     background: {BORDER};
 }}
 QSplitter::handle:horizontal {{
-    width: 1px;
-    margin: 21px 8px;
+    width: 2px;
+    margin: 12px 8px;
 }}
 QSplitter::handle:vertical {{
-    height: 1px;
-    margin: 8px 21px;
+    height: 2px;
+    margin: 8px 12px;
 }}
 QSplitter::handle:hover {{
     background: {ACCENT};
 }}
 
-/* ─── Status Bar ───────────────────────────────────── */
+/* --- Status Bar --- */
 QStatusBar {{
     background: {BG_DARKEST};
     color: {TEXT_MUTED};
@@ -283,7 +333,7 @@ QStatusBar {{
     padding: 5px 16px;
 }}
 
-/* ─── Scrollbars ───────────────────────────────────── */
+/* --- Scrollbars --- */
 QScrollBar:vertical {{
     background: {SCROLLBAR_BG};
     width: 10px;
@@ -319,7 +369,7 @@ QScrollBar::add-line:horizontal, QScrollBar::sub-line:horizontal {{
     width: 0;
 }}
 
-/* ─── Message Box ──────────────────────────────────── */
+/* --- Message Box --- */
 QMessageBox {{
     background: {BG_PANEL};
 }}
@@ -331,12 +381,7 @@ QMessageBox QPushButton {{
     min-width: 104px;
 }}
 
-/* ─── Form Labels ──────────────────────────────────── */
-QFormLayout {{
-    spacing: 10px;
-}}
-
-/* ─── Tooltips ─────────────────────────────────────── */
+/* --- Tooltips --- */
 QToolTip {{
     background: {BG_PANEL};
     color: {TEXT_PRIMARY};
@@ -346,7 +391,7 @@ QToolTip {{
     font-size: 16px;
 }}
 
-/* ─── Context Menu (Right-click) ───────────────────── */
+/* --- Context Menu --- */
 QMenu {{
     background: {BG_PANEL};
     color: {TEXT_PRIMARY};
