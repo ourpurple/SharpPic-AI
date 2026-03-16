@@ -11,14 +11,14 @@ from PyQt6.QtGui import QPixmap, QImage
 
 # GMI API supported aspect ratios: (label, width, height)
 _SUPPORTED_RATIOS = [
-    ("1:1",  1,  1),
-    ("3:2",  3,  2),
-    ("2:3",  2,  3),
-    ("3:4",  3,  4),
-    ("4:3",  4,  3),
-    ("4:5",  4,  5),
-    ("5:4",  5,  4),
-    ("9:16", 9,  16),
+    ("1:1", 1, 1),
+    ("3:2", 3, 2),
+    ("2:3", 2, 3),
+    ("3:4", 3, 4),
+    ("4:3", 4, 3),
+    ("4:5", 4, 5),
+    ("5:4", 5, 4),
+    ("9:16", 9, 16),
     ("16:9", 16, 9),
     ("21:9", 21, 9),
 ]
@@ -47,7 +47,6 @@ def get_mime_type(path: str) -> str:
 
 def base64_to_qpixmap(data: str) -> QPixmap:
     """Decode a base64 string into a QPixmap."""
-    # Strip data URI prefix if present
     if "," in data and data.startswith("data:"):
         data = data.split(",", 1)[1]
     raw = base64.b64decode(data)
@@ -72,11 +71,10 @@ def save_image(image: Image.Image, path: str) -> None:
 
 def extract_base64_from_text(text: str) -> str | None:
     """Try to extract a base64-encoded image from text content."""
-    # Match data URI pattern
     match = re.search(r"data:image/[^;]+;base64,([A-Za-z0-9+/=]+)", text)
     if match:
         return match.group(1)
-    # Match a standalone long base64 string (at least 100 chars, likely an image)
+
     match = re.search(r"([A-Za-z0-9+/=]{100,})", text)
     if match:
         candidate = match.group(1)
@@ -96,7 +94,7 @@ def find_closest_aspect_ratio(width: int, height: int) -> str:
     best_diff = float("inf")
     for label, rw, rh in _SUPPORTED_RATIOS:
         target = rw / rh
-        # Use log-ratio distance for proportional comparison
+        # Use log-ratio distance for proportional comparison.
         diff = abs(math.log(actual) - math.log(target))
         if diff < best_diff:
             best_diff = diff
@@ -120,39 +118,40 @@ def pad_to_aspect_ratio(image_path: str, target_label: str = "") -> tuple[str, s
         else:
             ratio_label = find_closest_aspect_ratio(w, h)
 
-        # Parse target ratio
         tw, th = map(int, ratio_label.split(":"))
         target_ratio = tw / th
         actual_ratio = w / h
 
-        # Already close enough — no padding needed
+        # Already close enough; no padding needed.
         if abs(actual_ratio - target_ratio) / target_ratio < 0.01:
             return image_path, ratio_label
 
-        # Calculate padded dimensions
+        # Calculate padded dimensions.
         if target_ratio > actual_ratio:
-            # Need wider → pad left & right
+            # Need wider; pad left and right.
             new_w = round(h * target_ratio)
             new_h = h
         else:
-            # Need taller → pad top & bottom
+            # Need taller; pad top and bottom.
             new_w = w
             new_h = round(w / target_ratio)
 
-        # Create white canvas and paste original image centered
         canvas = Image.new("RGB", (new_w, new_h), (255, 255, 255))
         paste_x = (new_w - w) // 2
         paste_y = (new_h - h) // 2
-        # Handle images with alpha channel
         if img.mode == "RGBA":
             canvas.paste(img, (paste_x, paste_y), img)
         else:
             canvas.paste(img, (paste_x, paste_y))
 
-        # Save to temp file
         tmp_dir = Path(tempfile.gettempdir()) / "sharppic"
         tmp_dir.mkdir(exist_ok=True)
-        tmp_path = str(tmp_dir / "padded_input.png")
+        tmp_path = tempfile.NamedTemporaryFile(
+            prefix="padded_",
+            suffix=".png",
+            dir=tmp_dir,
+            delete=False,
+        ).name
         canvas.save(tmp_path, "PNG")
 
         return tmp_path, ratio_label

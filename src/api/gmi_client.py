@@ -75,9 +75,9 @@ def _submit_request(
     manual_ratio = config.get("gmi_aspect_ratio") or ""
     padded_path, aspect_ratio = pad_to_aspect_ratio(image_path, manual_ratio)
     if padded_path != image_path:
-        on_text(f"\n[gmicloud] 已添加白边适配比例 {aspect_ratio}（原图: {image_path}）\n")
+        on_text(f"📐 已自动调整图片比例为 {aspect_ratio}\n")
     else:
-        on_text(f"\n[gmicloud] 图片比例已匹配: {aspect_ratio}\n")
+        on_text(f"📐 图片比例: {aspect_ratio}\n")
 
     payload = _build_payload(padded_path, aspect_ratio)
     body = {
@@ -85,36 +85,7 @@ def _submit_request(
         "payload": payload,
     }
 
-    # --- DEBUG: log request structure (without full base64) ---
-    debug_payload = json.loads(json.dumps(payload))
-    if "contents" in debug_payload:
-        for msg in debug_payload["contents"]:
-            for part in msg.get("parts", []):
-                # Truncate inline image data for readability
-                for key in ("inlineData", "inline_data"):
-                    if key in part and "data" in part[key]:
-                        data_len = len(part[key]["data"])
-                        part[key]["data"] = f"<base64 {data_len} chars>"
-    on_text(f"\n[DEBUG] Request body structure:\n")
-    on_text(json.dumps({"model": body["model"], "payload": debug_payload}, indent=2, ensure_ascii=False))
-    on_text("\n")
-
-    # --- DEBUG: source image info ---
-    file_size = os.path.getsize(padded_path)
-    on_text(f"\n[DEBUG] Source image: {padded_path}\n")
-    on_text(f"[DEBUG] File size: {file_size / 1024:.1f} KB\n")
-    try:
-        from PIL import Image
-        with Image.open(padded_path) as img:
-            on_text(f"[DEBUG] Dimensions: {img.size[0]}x{img.size[1]}, mode={img.mode}\n")
-    except Exception:
-        pass
-
     resp = client.post(f"{_BASE_URL}{_SUBMIT_ENDPOINT}", json=body)
-
-    # --- DEBUG: log raw response ---
-    on_text(f"\n[DEBUG] Submit response status: {resp.status_code}\n")
-    on_text(f"[DEBUG] Submit response body:\n{resp.text}\n")
 
     resp.raise_for_status()
     data = resp.json()
@@ -144,13 +115,13 @@ def process_image(
     """
     with httpx.Client(headers=_headers(), timeout=120) as client:
         # Step 1: Submit
-        on_text("[gmicloud] 正在提交请求...\n")
+        on_text("🚀 正在提交处理请求...\n")
         request_id = _submit_request(client, image_path, on_text)
-        on_text(f"\n[gmicloud] 请求已提交，ID: {request_id}\n")
-        on_text(f"[gmicloud] 图片尺寸: {config.get('gmi_image_size') or '4K'}\n")
+        on_text(f"✅ 请求已提交\n")
+        on_text(f"📏 目标尺寸: {config.get('gmi_image_size') or '4K'}\n")
 
         # Step 2: Poll
-        on_text("[gmicloud] 等待处理中")
+        on_text("\n⏳ AI 正在处理中")
         poll_count = 0
         url = f"{_BASE_URL}{_SUBMIT_ENDPOINT}/{request_id}"
         elapsed = 0.0
@@ -166,9 +137,7 @@ def process_image(
                 result_data = data
                 break
             if status in ("failed", "cancelled"):
-                # --- DEBUG: log failure response ---
-                on_text(f"\n[DEBUG] Failed response:\n{json.dumps(data, indent=2, ensure_ascii=False)}\n")
-                on_text(f"\n[gmicloud] 请求失败: {status}\n")
+                on_text(f"\n❌ 处理失败: {status}\n")
                 raise RuntimeError(f"gmicloud 请求失败，状态: {status}")
 
             poll_count += 1
@@ -177,14 +146,10 @@ def process_image(
             elapsed += _POLL_INTERVAL
 
         if result_data is None:
-            on_text(f"\n[gmicloud] 请求超时\n")
+            on_text(f"\n⏱️ 处理超时\n")
             raise RuntimeError(f"gmicloud 请求超时（{_POLL_TIMEOUT}秒），请稍后重试")
 
-        on_text(f"\n[gmicloud] 处理完成！耗时约 {elapsed:.0f} 秒\n")
-
-        # --- DEBUG: log full success response (without huge data) ---
-        debug_result = json.loads(json.dumps(result_data))
-        on_text(f"\n[DEBUG] Full success response:\n{json.dumps(debug_result, indent=2, ensure_ascii=False)}\n")
+        on_text(f"\n✨ 处理完成！耗时约 {elapsed:.0f} 秒\n")
 
         # Step 3: Download result image
         media_urls = result_data.get("outcome", {}).get("media_urls", [])
@@ -195,19 +160,17 @@ def process_image(
         if not image_url:
             raise RuntimeError("gmicloud 返回的图片 URL 为空")
 
-        on_text(f"\n[gmicloud] 正在下载结果图片...\n")
-        on_text(f"[DEBUG] Download URL: {image_url}\n")
+        on_text(f"📥 正在下载结果图片...\n")
         b64_image = _download_image(image_url)
-        on_text(f"[gmicloud] 下载完成，数据大小: {len(b64_image)} 字符\n")
-
-        # --- DEBUG: result image info ---
+        
+        # Get result image info
         try:
             import io
             from PIL import Image
             raw = base64.b64decode(b64_image)
             with Image.open(io.BytesIO(raw)) as img:
-                on_text(f"[DEBUG] Result image: {img.size[0]}x{img.size[1]}, mode={img.mode}, format={img.format}\n")
-        except Exception as e:
-            on_text(f"[DEBUG] Cannot read result image info: {e}\n")
+                on_text(f"🎉 下载完成！图片尺寸: {img.size[0]}x{img.size[1]}\n")
+        except Exception:
+            on_text(f"🎉 下载完成！\n")
 
         return b64_image

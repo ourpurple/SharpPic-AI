@@ -49,7 +49,7 @@ def _section_label(text: str) -> QLabel:
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("SharpPic-AI V0.1.0 - 图片增强与超分辨率")
+        self.setWindowTitle("SharpPic-AI V0.1.0")
         self.setMinimumSize(1248, 832)
         self._source_path: str | None = None
         self._result_b64: str | None = None
@@ -62,7 +62,7 @@ class MainWindow(QMainWindow):
         toolbar.setMovable(False)
 
         # App title in toolbar
-        title = QLabel("  SharpPic-AI V0.1.0")
+        title = QLabel("  SharpPic-AI")
         title.setStyleSheet("font-size: 20px; font-weight: 700; color: #00D4AA; padding-right: 16px;")
         toolbar.addWidget(title)
 
@@ -132,8 +132,9 @@ class MainWindow(QMainWindow):
 
         right_layout.addWidget(_section_label("处理结果"))
 
-        self._result_label = ImageDropLabel("处理后的图片将显示在此处")
+        self._result_label = ImageDropLabel("处理后的图片将显示在此处", enable_context_menu=True)
         self._result_label.setAcceptDrops(False)
+        self._result_label.save_requested.connect(self._save_result)
         right_layout.addWidget(self._result_label, 1)
 
         self._save_btn = QPushButton("保存图片")

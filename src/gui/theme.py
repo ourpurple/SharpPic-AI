@@ -345,4 +345,33 @@ QToolTip {{
     padding: 8px 13px;
     font-size: 16px;
 }}
+
+/* ─── Context Menu (Right-click) ───────────────────── */
+QMenu {{
+    background: {BG_PANEL};
+    color: {TEXT_PRIMARY};
+    border: 1px solid {BORDER};
+    border-radius: 10px;
+    padding: 8px;
+    font-size: 17px;
+}}
+QMenu::item {{
+    background: transparent;
+    color: {TEXT_PRIMARY};
+    padding: 10px 26px;
+    border-radius: 8px;
+    margin: 2px;
+}}
+QMenu::item:selected {{
+    background: {BG_HOVER};
+    color: {ACCENT};
+}}
+QMenu::item:disabled {{
+    color: {TEXT_MUTED};
+}}
+QMenu::separator {{
+    height: 1px;
+    background: {BORDER};
+    margin: 8px 13px;
+}}
 """

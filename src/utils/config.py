@@ -1,4 +1,5 @@
 import json
+import logging
 from pathlib import Path
 
 _CONFIG_DIR = Path.home() / ".sharppic"
@@ -17,6 +18,7 @@ _DEFAULTS = {
 }
 
 _config: dict = {}
+_LOGGER = logging.getLogger(__name__)
 
 
 def _load_builtin() -> dict:
@@ -32,8 +34,15 @@ def _load_builtin() -> dict:
 def load() -> dict:
     global _config
     if _CONFIG_FILE.exists():
-        with open(_CONFIG_FILE, "r", encoding="utf-8") as f:
-            _config = json.load(f)
+        try:
+            with open(_CONFIG_FILE, "r", encoding="utf-8") as f:
+                loaded = json.load(f)
+            _config = loaded if isinstance(loaded, dict) else {}
+            if not isinstance(loaded, dict):
+                _LOGGER.warning("Config file is not a JSON object: %s", _CONFIG_FILE)
+        except (json.JSONDecodeError, OSError) as exc:
+            _LOGGER.warning("Failed to load config file %s: %s", _CONFIG_FILE, exc)
+            _config = {}
     else:
         _config = {}
 
@@ -70,3 +79,4 @@ def get_all() -> dict:
     if not _config:
         load()
     return dict(_config)
+

@@ -29,8 +29,15 @@ def main():
     window = MainWindow()
     window.show()
 
-    # First-run: open settings if API key is not configured
-    if not config.get("api_key"):
+    # First-run: open settings if selected provider credentials are missing
+    provider = config.get("api_provider") or "openai"
+    needs_setup = False
+    if provider == "gmicloud":
+        needs_setup = not bool(config.get("gmi_api_key"))
+    else:
+        needs_setup = not bool(config.get("api_key"))
+
+    if needs_setup:
         dlg = SettingsDialog(window)
         dlg.exec()
 
@@ -39,3 +46,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+

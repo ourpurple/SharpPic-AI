@@ -70,8 +70,26 @@ def _extract_images_from_extra(model_extra: dict | None) -> list[str]:
     return results
 
 
+def _extract_text_from_delta_content(content: object) -> str:
+    """Normalize streaming delta content into plain text."""
+    if isinstance(content, str):
+        return content
+    if isinstance(content, list):
+        parts: list[str] = []
+        for item in content:
+            if isinstance(item, str):
+                parts.append(item)
+            elif isinstance(item, dict):
+                text = item.get("text")
+                if isinstance(text, str):
+                    parts.append(text)
+        return "".join(parts)
+    return ""
+
+
 def _debug(on_text: Callable[[str], None], msg: str):
-    on_text(f"\n[DEBUG] {msg}\n")
+    # Debug messages are disabled for better user experience
+    pass
 
 
 def process_image_stream(
@@ -88,14 +106,13 @@ def process_image_stream(
 
     if provider == "gmicloud":
         from src.api.gmi_client import process_image as gmi_process
+
         return gmi_process(image_path, on_text)
 
-    # Default: OpenAI-compatible flow
     client = _build_client()
     messages = _build_messages(image_path)
 
-    _debug(on_text, f"model={config.get('model_name')}, base_url={config.get('api_base_url')}")
-    _debug(on_text, "Starting streaming request...")
+    on_text("🚀 开始处理图片...\n")
 
     stream = client.chat.completions.create(
         model=config.get("model_name"),
@@ -114,39 +131,32 @@ def process_image_stream(
 
         delta = chunk.choices[0].delta
 
-        # Collect text content
-        if delta.content:
-            full_text += delta.content
-            on_text(delta.content)
+        text_delta = _extract_text_from_delta_content(delta.content)
+        if text_delta:
+            full_text += text_delta
+            on_text(text_delta)
 
-        # Collect images from model_extra (Qwen-style APIs)
         if hasattr(delta, "model_extra") and delta.model_extra:
             extras = _extract_images_from_extra(delta.model_extra)
             if extras:
                 _debug(on_text, f"chunk[{chunk_count}]: found {len(extras)} image(s) in model_extra, b64 length={len(extras[0])}")
                 collected_images.extend(extras)
 
-    _debug(on_text, f"Stream done. chunks={chunk_count}, text_len={len(full_text)}, images_from_extra={len(collected_images)}")
+    on_text("\n✅ 处理完成，正在生成结果图片...\n")
 
-    # Priority 1: images from model_extra
     if collected_images:
-        _debug(on_text, f"Using image from model_extra, b64 length={len(collected_images[0])}")
         return collected_images[0]
 
-    # Priority 2: base64 embedded in text
     image_b64 = extract_base64_from_text(full_text)
     if image_b64:
-        _debug(on_text, f"Found base64 in text, length={len(image_b64)}")
         return image_b64
 
-    # Priority 3: URL in text
     url_match = re.search(r"https?://\S+", full_text)
     if url_match:
         url = url_match.group(0).rstrip(")")
-        _debug(on_text, f"Found URL in text: {url}")
+        on_text("📥 正在下载结果图片...\n")
         return _download_image_url(url)
 
-    _debug(on_text, f"No image found. Text preview: {full_text[:500]}")
     raise RuntimeError(
         "API 响应中未找到图片数据。模型可能不支持图片生成，请检查模型设置。\n\n"
         f"模型回复内容:\n{full_text}"
