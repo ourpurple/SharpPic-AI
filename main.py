@@ -7,8 +7,9 @@ from src.utils import config
 from src.gui.theme import APP_STYLESHEET
 from src.gui.main_window import MainWindow
 from src.gui.settings_dialog import SettingsDialog
+from src.version import APP_VERSION
 
-__version__ = "0.1.0"
+__version__ = APP_VERSION
 
 
 def _resource_path(relative_path: str) -> str:
@@ -46,4 +47,6 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+
 

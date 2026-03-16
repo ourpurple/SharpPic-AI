@@ -102,7 +102,7 @@ def process_image_stream(
     client = _build_client()
     messages = _build_messages(image_path, color_mode=color_mode)
 
-    on_text("\n开始处理图片...\n")
+    on_text("🚀 开始处理图片...\n")
 
     stream = client.chat.completions.create(
         model=config.get("model_name"),
@@ -127,7 +127,7 @@ def process_image_stream(
         if hasattr(delta, "model_extra") and delta.model_extra:
             collected_images.extend(_extract_images_from_extra(delta.model_extra))
 
-    on_text("\n处理完成，正在生成结果图片...\n")
+    on_text("\n✨ 处理完成，正在生成结果图片...\n")
 
     if collected_images:
         return collected_images[0]
@@ -139,7 +139,7 @@ def process_image_stream(
     url_match = re.search(r"https?://\S+", full_text)
     if url_match:
         url = url_match.group(0).rstrip(")")
-        on_text("正在下载结果图片...\n")
+        on_text("📥 正在下载结果图片...\n")
         return _download_image_url(url)
 
     raise RuntimeError(

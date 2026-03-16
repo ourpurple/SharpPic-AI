@@ -25,6 +25,7 @@ from src.gui.settings_dialog import SettingsDialog
 from src.gui.widgets import ImageDropLabel
 from src.utils import config
 from src.utils.image_utils import base64_to_pil, base64_to_qpixmap, save_image
+from src.version import APP_VERSION
 
 
 class ProcessWorker(QThread):
@@ -62,7 +63,7 @@ def _section_label(text: str) -> QLabel:
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("SharpPic-AI V0.1.0")
+        self.setWindowTitle(f"SharpPic-AI V{APP_VERSION}")
         self.setMinimumSize(1248, 832)
         self._source_path: str | None = None
         self._result_b64: str | None = None
