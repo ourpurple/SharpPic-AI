@@ -131,9 +131,13 @@ class MainWindow(QMainWindow):
         toolbar = QToolBar()
         toolbar.setMovable(False)
 
-        title = QLabel("  SharpPic-AI")
-        title.setStyleSheet("font-size: 20px; font-weight: 700; color: #00D4AA; padding-right: 16px;")
+        title = QLabel("SharpPic-AI")
+        title.setObjectName("appTitle")
         toolbar.addWidget(title)
+
+        subtitle = QLabel("AI 图像增强与生成工作台")
+        subtitle.setObjectName("toolbarMeta")
+        toolbar.addWidget(subtitle)
 
         spacer = QWidget()
         spacer.setSizePolicy(
@@ -142,7 +146,7 @@ class MainWindow(QMainWindow):
         )
         toolbar.addWidget(spacer)
 
-        settings_action = QAction("  设置  ", self)
+        settings_action = QAction("设置", self)
         settings_action.triggered.connect(self._open_settings)
         toolbar.addAction(settings_action)
         self.addToolBar(toolbar)
@@ -174,8 +178,9 @@ class MainWindow(QMainWindow):
         layout.addWidget(splitter)
 
         left = QWidget()
+        left.setObjectName("panelCard")
         left_layout = QVBoxLayout(left)
-        left_layout.setContentsMargins(5, 0, 10, 0)
+        left_layout.setContentsMargins(14, 14, 14, 14)
         left_layout.setSpacing(10)
 
         left_layout.addWidget(_section_label("原始图片"))
@@ -189,6 +194,10 @@ class MainWindow(QMainWindow):
         select_btn.setObjectName("compactBtn")
         select_btn.clicked.connect(self._select_file)
         left_layout.addWidget(select_btn)
+
+        source_hint = QLabel("支持 PNG/JPG/BMP/GIF/WEBP，建议上传清晰原图以获得更好效果。")
+        source_hint.setObjectName("hintText")
+        left_layout.addWidget(source_hint)
 
         paste_shortcut = QShortcut(QKeySequence.StandardKey.Paste, self)
         paste_shortcut.activated.connect(self._paste_from_clipboard)
@@ -212,8 +221,9 @@ class MainWindow(QMainWindow):
         splitter.addWidget(left)
 
         right = QWidget()
+        right.setObjectName("panelCard")
         right_layout = QVBoxLayout(right)
-        right_layout.setContentsMargins(10, 0, 5, 0)
+        right_layout.setContentsMargins(14, 14, 14, 14)
         right_layout.setSpacing(10)
 
         right_layout.addWidget(_section_label("处理结果"))
@@ -231,6 +241,7 @@ class MainWindow(QMainWindow):
 
         splitter.addWidget(right)
         splitter.setSizes([420, 780])
+        splitter.setChildrenCollapsible(False)
 
         return page
 
@@ -243,8 +254,9 @@ class MainWindow(QMainWindow):
         layout.addWidget(splitter)
 
         left = QWidget()
+        left.setObjectName("panelCard")
         left_layout = QVBoxLayout(left)
-        left_layout.setContentsMargins(5, 0, 10, 0)
+        left_layout.setContentsMargins(14, 14, 14, 14)
         left_layout.setSpacing(10)
 
         left_layout.addWidget(_section_label("提示词"))
@@ -253,6 +265,10 @@ class MainWindow(QMainWindow):
         self._gen_prompt_input.setPlaceholderText("请输入提示词，例如：一只在雨夜街头打伞的猫，电影感光影")
         self._gen_prompt_input.setMinimumHeight(210)
         left_layout.addWidget(self._gen_prompt_input, 3)
+
+        prompt_hint = QLabel("建议包含：主体 + 场景 + 光线 + 构图 + 风格关键词。")
+        prompt_hint.setObjectName("hintText")
+        left_layout.addWidget(prompt_hint)
 
         left_layout.addWidget(_section_label("生成参数"))
 
@@ -313,8 +329,9 @@ class MainWindow(QMainWindow):
         splitter.addWidget(left)
 
         right = QWidget()
+        right.setObjectName("panelCard")
         right_layout = QVBoxLayout(right)
-        right_layout.setContentsMargins(10, 0, 5, 0)
+        right_layout.setContentsMargins(14, 14, 14, 14)
         right_layout.setSpacing(10)
 
         right_layout.addWidget(_section_label("生成结果"))
@@ -332,6 +349,7 @@ class MainWindow(QMainWindow):
 
         splitter.addWidget(right)
         splitter.setSizes([420, 780])
+        splitter.setChildrenCollapsible(False)
 
         self._on_gen_style_changed(self._gen_style.currentText())
         return page
@@ -461,7 +479,7 @@ class MainWindow(QMainWindow):
         style = self._gen_style.currentText()
         custom_style = self._gen_custom_style.text().strip()
         if style == "自定义" and not custom_style:
-            QMessageBox.information(self, "提示", "请选择自定义风格时，请填写风格描述")
+            QMessageBox.information(self, "提示", "选择自定义风格时，请填写风格描述")
             return
 
         color_mode = self._gen_color_mode.currentText()
@@ -582,8 +600,3 @@ class MainWindow(QMainWindow):
             self._status.showMessage(f"已保存: {path}")
         except Exception as e:
             QMessageBox.critical(self, "保存失败", str(e))
-
-
-
-
-

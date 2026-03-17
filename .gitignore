@@ -8,6 +8,7 @@ __pycache__/
 dist/
 build/
 *.egg
+.codex/
 
 # Virtual Environment
 .venv/
@@ -44,3 +45,4 @@ desktop.ini
 
 # Distribution
 *.whl
+src/utils/builtin_config.py

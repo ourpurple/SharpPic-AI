@@ -1,4 +1,4 @@
-from __future__ import annotations
+﻿from __future__ import annotations
 
 from PyQt6.QtCore import QThread, Qt, pyqtSignal
 from PyQt6.QtWidgets import (
@@ -85,21 +85,25 @@ class SettingsDialog(QDialog):
         super().__init__(parent)
         self._task_thread: _SettingsTaskThread | None = None
         self.setWindowTitle("设置")
-        self.setMinimumWidth(676)
+        self.setMinimumWidth(700)
         self._build_ui()
         self._load_values()
 
     def _build_ui(self):
         layout = QVBoxLayout(self)
-        layout.setSpacing(21)
-        layout.setContentsMargins(31, 31, 31, 26)
+        layout.setSpacing(18)
+        layout.setContentsMargins(28, 26, 28, 22)
 
-        header = QLabel("API 配置")
-        header.setStyleSheet("font-size: 21px; font-weight: 700; color: #00D4AA; padding-bottom: 5px;")
+        header = QLabel("连接与输出设置")
+        header.setObjectName("appTitle")
         layout.addWidget(header)
 
+        header_hint = QLabel("先选择服务提供方，再配置密钥与模型。")
+        header_hint.setObjectName("hintText")
+        layout.addWidget(header_hint)
+
         provider_form = QFormLayout()
-        provider_form.setSpacing(16)
+        provider_form.setSpacing(14)
         provider_form.setLabelAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
         provider_form.setFormAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter)
 
@@ -107,16 +111,17 @@ class SettingsDialog(QDialog):
         self._provider.addItem("OpenAI 兼容", "openai")
         self._provider.addItem("GmiCloud", "gmicloud")
         self._provider.currentIndexChanged.connect(self._on_provider_changed)
-        provider_form.addRow("接口类型", self._provider)
+        provider_form.addRow("服务提供方", self._provider)
 
         layout.addLayout(provider_form)
 
         self._openai_section = QWidget()
+        self._openai_section.setObjectName("panelCard")
         openai_layout = QVBoxLayout(self._openai_section)
-        openai_layout.setContentsMargins(0, 0, 0, 0)
+        openai_layout.setContentsMargins(14, 14, 14, 14)
 
         openai_form = QFormLayout()
-        openai_form.setSpacing(16)
+        openai_form.setSpacing(12)
         openai_form.setLabelAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
         openai_form.setFormAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter)
 
@@ -127,7 +132,7 @@ class SettingsDialog(QDialog):
         self._api_key = QLineEdit()
         self._api_key.setEchoMode(QLineEdit.EchoMode.Password)
         self._api_key.setPlaceholderText("sk-...")
-        openai_form.addRow("密钥", self._api_key)
+        openai_form.addRow("API Key", self._api_key)
 
         model_row = QHBoxLayout()
         self._model = QComboBox()
@@ -144,18 +149,19 @@ class SettingsDialog(QDialog):
         layout.addWidget(self._openai_section)
 
         self._gmi_section = QWidget()
+        self._gmi_section.setObjectName("panelCard")
         gmi_layout = QVBoxLayout(self._gmi_section)
-        gmi_layout.setContentsMargins(0, 0, 0, 0)
+        gmi_layout.setContentsMargins(14, 14, 14, 14)
 
         gmi_form = QFormLayout()
-        gmi_form.setSpacing(16)
+        gmi_form.setSpacing(12)
         gmi_form.setLabelAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
         gmi_form.setFormAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter)
 
         self._gmi_api_key = QLineEdit()
         self._gmi_api_key.setEchoMode(QLineEdit.EchoMode.Password)
         self._gmi_api_key.setPlaceholderText("gmicloud API Key")
-        gmi_form.addRow("密钥", self._gmi_api_key)
+        gmi_form.addRow("API Key", self._gmi_api_key)
 
         self._gmi_image_size = QComboBox()
         self._gmi_image_size.addItems(_IMAGE_SIZES)
@@ -164,14 +170,19 @@ class SettingsDialog(QDialog):
         self._gmi_aspect_ratio = QComboBox()
         self._gmi_aspect_ratio.setEditable(True)
         for ar in _ASPECT_RATIOS:
-            self._gmi_aspect_ratio.addItem(ar if ar else "自动（跟随原图）")
+            self._gmi_aspect_ratio.addItem(ar if ar else "自动（沿用原图）")
         gmi_form.addRow("宽高比", self._gmi_aspect_ratio)
 
         gmi_layout.addLayout(gmi_form)
         layout.addWidget(self._gmi_section)
 
+        common_section = QWidget()
+        common_section.setObjectName("panelCard")
+        common_layout = QVBoxLayout(common_section)
+        common_layout.setContentsMargins(14, 14, 14, 14)
+
         common_form = QFormLayout()
-        common_form.setSpacing(16)
+        common_form.setSpacing(12)
         common_form.setLabelAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
         common_form.setFormAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter)
 
@@ -186,22 +197,21 @@ class SettingsDialog(QDialog):
         common_form.addRow("保存目录", dir_row)
 
         self._debug_enabled = QCheckBox("启用调试日志")
-        self._debug_enabled.setToolTip("开启后会在实时信息中输出更多响应结构信息，便于排查生图失败")
+        self._debug_enabled.setToolTip("开启后会在实时信息中输出更多响应结构，便于排查生图失败问题")
         common_form.addRow("调试模式", self._debug_enabled)
 
-        layout.addLayout(common_form)
+        common_layout.addLayout(common_form)
+        layout.addWidget(common_section)
 
         test_row = QHBoxLayout()
         self._test_btn = QPushButton("测试连接")
         self._test_btn.setObjectName("compactBtn")
         self._test_btn.clicked.connect(self._test_connection)
         self._status_label = QLabel("")
-        self._status_label.setStyleSheet("font-size: 16px;")
+        self._status_label.setObjectName("statusInfo")
         test_row.addWidget(self._test_btn)
         test_row.addWidget(self._status_label, 1)
         layout.addLayout(test_row)
-
-        layout.addSpacing(10)
 
         btn_row = QHBoxLayout()
         btn_row.addStretch()
@@ -283,33 +293,40 @@ class SettingsDialog(QDialog):
     def _on_task_success(self, task: str, result: object) -> None:
         if task == "test_openai":
             self._status_label.setText(f"连接成功: {result}")
-            self._status_label.setStyleSheet("color: #00D4AA; font-size: 16px;")
+            self._status_label.setObjectName("statusOk")
+            self._status_label.style().unpolish(self._status_label)
+            self._status_label.style().polish(self._status_label)
             return
 
         if task == "test_gmi":
             self._status_label.setText("连接成功")
-            self._status_label.setStyleSheet("color: #00D4AA; font-size: 16px;")
+            self._status_label.setObjectName("statusOk")
+            self._status_label.style().unpolish(self._status_label)
+            self._status_label.style().polish(self._status_label)
             return
 
         if task == "fetch_models":
             models = result if isinstance(result, list) else []
             if not models:
-                QMessageBox.information(self, "提示", "未获取到可用模型")
+                QMessageBox.warning(self, "获取失败", "未获取到可用模型，请检查接口地址与 API Key")
                 return
             previous = self._model.currentText()
             self._model.clear()
             self._model.addItems(models)
             idx = self._model.findText(previous)
             self._model.setCurrentIndex(idx if idx >= 0 else 0)
+            self._model.showPopup()
 
     def _on_task_failure(self, task: str, error: str) -> None:
         if task.startswith("test_"):
             self._status_label.setText(f"连接失败: {error}")
-            self._status_label.setStyleSheet("color: #FF6B6B; font-size: 16px;")
+            self._status_label.setObjectName("statusErr")
+            self._status_label.style().unpolish(self._status_label)
+            self._status_label.style().polish(self._status_label)
             return
 
         if task == "fetch_models":
-            QMessageBox.warning(self, "获取失败", f"无法获取模型列表:\n{error}")
+            QMessageBox.critical(self, "获取失败", f"无法获取模型列表:\n{error}")
 
     def _on_task_finished(self) -> None:
         self._set_request_busy(False)
@@ -317,7 +334,9 @@ class SettingsDialog(QDialog):
 
     def _test_connection(self):
         self._status_label.setText("正在连接...")
-        self._status_label.setStyleSheet("color: #8B8D98; font-size: 16px;")
+        self._status_label.setObjectName("statusInfo")
+        self._status_label.style().unpolish(self._status_label)
+        self._status_label.style().polish(self._status_label)
         self._apply_to_config()
 
         provider = self._provider.currentData()

@@ -1,46 +1,48 @@
-﻿"""
-SharpPic-AI — Dark Precision Lab Theme
+﻿from __future__ import annotations
 
-A sophisticated dark interface inspired by professional image-processing tools.
-Deep charcoal backgrounds, vivid teal accents, clean geometric lines.
+"""
+SharpPic-AI Theme
+
+Dark, high-contrast workspace focused on image editing and generation workflows.
 """
 
 # -- Color Palette ------------------------------------------------
-BG_DARKEST = "#131419"
-BG_DARK = "#1a1b23"
-BG_PANEL = "#22232d"
-BG_INPUT = "#282935"
-BG_HOVER = "#2e3040"
-BG_PRESSED = "#353748"
+BG_DARKEST = "#111319"
+BG_DARK = "#181B22"
+BG_PANEL = "#1F2430"
+BG_PANEL_ALT = "#1A202B"
+BG_INPUT = "#262C3A"
+BG_HOVER = "#2D3445"
+BG_PRESSED = "#374057"
 
-ACCENT = "#00D4AA"
-ACCENT_HOVER = "#00E8BB"
-ACCENT_PRESSED = "#00B892"
-ACCENT_DIM = "#00D4AA40"  # 25% opacity
+ACCENT = "#18C29C"
+ACCENT_HOVER = "#24D5AE"
+ACCENT_PRESSED = "#12A885"
+ACCENT_DIM = "#18C29C40"  # 25% opacity
 
 DANGER = "#FF6B6B"
 WARNING = "#F0A030"
-SUCCESS = "#00D4AA"
+SUCCESS = "#18C29C"
 
-TEXT_PRIMARY = "#E8E9ED"
-TEXT_SECONDARY = "#8B8D98"
-TEXT_MUTED = "#5C5E6A"
+TEXT_PRIMARY = "#EDF1F8"
+TEXT_SECONDARY = "#A7B1C2"
+TEXT_MUTED = "#6F7A8E"
 TEXT_ON_ACCENT = "#0A0F0D"
 
-BORDER = "#2d2e3a"
+BORDER = "#30394A"
 BORDER_FOCUS = ACCENT
-BORDER_SUBTLE = "#24252f"
+BORDER_SUBTLE = "#232B39"
 
 SCROLLBAR_BG = BG_DARK
-SCROLLBAR_HANDLE = "#3a3c4a"
-SCROLLBAR_HOVER = "#4a4d5e"
+SCROLLBAR_HANDLE = "#42506A"
+SCROLLBAR_HOVER = "#516180"
 
 # -- Drop Zone ----------------------------------------------------
 DROP_ZONE_DEFAULT = f"""
     QLabel {{
         border: 2px dashed {TEXT_MUTED};
         border-radius: 16px;
-        background: {BG_PANEL};
+        background: {BG_PANEL_ALT};
         color: {TEXT_SECONDARY};
         font-size: 17px;
         font-weight: 500;
@@ -52,8 +54,8 @@ DROP_ZONE_HOVER = f"""
     QLabel {{
         border: 2px dashed {ACCENT};
         border-radius: 16px;
-        background: #1a2a28;
-        color: {ACCENT};
+        background: #193a33;
+        color: {ACCENT_HOVER};
         font-size: 17px;
         font-weight: 500;
         padding: 26px;
@@ -90,7 +92,7 @@ QToolBar {{
     background: {BG_DARKEST};
     border: none;
     border-bottom: 1px solid {BORDER};
-    padding: 8px 16px;
+    padding: 10px 16px;
     spacing: 10px;
 }}
 
@@ -116,7 +118,7 @@ QToolBar QToolButton:pressed {{
 QTabWidget::pane {{
     border: 1px solid {BORDER};
     border-radius: 14px;
-    background: {BG_DARK};
+    background: {BG_PANEL_ALT};
     margin-top: 14px;
 }}
 QTabWidget::tab-bar {{
@@ -155,16 +157,60 @@ QTabBar::tab:selected {{
 QTabBar::tab:selected:hover {{
     background: {ACCENT_HOVER};
 }}
+
 /* --- Section Labels --- */
 QLabel#sectionLabel {{
     color: {TEXT_SECONDARY};
-    font-size: 14px;
+    font-size: 13px;
     font-weight: 700;
     letter-spacing: 1px;
-    text-transform: uppercase;
     padding: 0px 5px 8px 5px;
     border-bottom: 1px solid {BORDER};
     margin-bottom: 5px;
+}}
+
+QLabel#appTitle {{
+    color: {TEXT_PRIMARY};
+    font-size: 20px;
+    font-weight: 800;
+    letter-spacing: 0.4px;
+    padding-right: 8px;
+}}
+
+QLabel#toolbarMeta {{
+    color: {TEXT_MUTED};
+    font-size: 13px;
+    font-weight: 500;
+    padding-left: 2px;
+}}
+
+QWidget#panelCard {{
+    background: {BG_PANEL};
+    border: 1px solid {BORDER_SUBTLE};
+    border-radius: 14px;
+}}
+
+QLabel#hintText {{
+    color: {TEXT_MUTED};
+    font-size: 13px;
+}}
+
+QLabel#statusOk {{
+    color: {SUCCESS};
+    font-size: 15px;
+    font-weight: 600;
+}}
+
+QLabel#statusErr {{
+    color: {DANGER};
+    font-size: 15px;
+    font-weight: 600;
+}}
+
+QLabel#statusInfo {{
+    color: {TEXT_SECONDARY};
+    font-size: 15px;
+    font-weight: 500;
 }}
 
 /* --- Buttons --- */
@@ -295,7 +341,7 @@ QComboBox QAbstractItemView {{
 
 /* --- Text Edit --- */
 QTextEdit {{
-    background: {BG_DARKEST};
+    background: {BG_PANEL_ALT};
     color: {TEXT_SECONDARY};
     border: 1px solid {BORDER};
     border-radius: 13px;
@@ -305,7 +351,7 @@ QTextEdit {{
     selection-background-color: {ACCENT_DIM};
 }}
 QTextEdit[readOnly="true"] {{
-    background: {BG_DARKEST};
+    background: {BG_PANEL_ALT};
 }}
 
 /* --- Splitter --- */
@@ -327,7 +373,7 @@ QSplitter::handle:hover {{
 /* --- Status Bar --- */
 QStatusBar {{
     background: {BG_DARKEST};
-    color: {TEXT_MUTED};
+    color: {TEXT_SECONDARY};
     border-top: 1px solid {BORDER};
     font-size: 16px;
     padding: 5px 16px;
@@ -420,4 +466,3 @@ QMenu::separator {{
     margin: 8px 13px;
 }}
 """
-
