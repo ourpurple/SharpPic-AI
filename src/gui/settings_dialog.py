@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from PyQt6.QtCore import QThread, Qt, pyqtSignal
 from PyQt6.QtWidgets import (
+    QCheckBox,
     QComboBox,
     QDialog,
     QFileDialog,
@@ -184,6 +185,10 @@ class SettingsDialog(QDialog):
         dir_row.addWidget(browse_btn)
         common_form.addRow("保存目录", dir_row)
 
+        self._debug_enabled = QCheckBox("启用调试日志")
+        self._debug_enabled.setToolTip("开启后会在实时信息中输出更多响应结构信息，便于排查生图失败")
+        common_form.addRow("调试模式", self._debug_enabled)
+
         layout.addLayout(common_form)
 
         test_row = QHBoxLayout()
@@ -252,6 +257,7 @@ class SettingsDialog(QDialog):
             self._gmi_aspect_ratio.setCurrentIndex(0)
 
         self._save_dir.setText(config.get("save_directory"))
+        self._debug_enabled.setChecked(bool(config.get("debug_enabled", False)))
         self._on_provider_changed()
 
     def _browse_dir(self):
@@ -331,6 +337,7 @@ class SettingsDialog(QDialog):
         ar_text = self._gmi_aspect_ratio.currentText()
         config.set("gmi_aspect_ratio", "" if ar_text.startswith("自动") else ar_text)
         config.set("save_directory", self._save_dir.text().strip())
+        config.set("debug_enabled", self._debug_enabled.isChecked())
 
     def _fetch_models(self):
         self._apply_to_config()

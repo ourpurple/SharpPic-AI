@@ -21,6 +21,8 @@ _DEFAULTS = {
     "gen_aspect_ratio": "1:1",
     "gen_style": "写实",
     "gen_custom_style": "",
+    # diagnostics
+    "debug_enabled": False,
 }
 
 _config: dict = {}
@@ -32,6 +34,7 @@ def _load_builtin() -> dict:
     try:
         from src.utils.builtin_config import BUILTIN_TOKEN
         from src.utils.crypto import decrypt
+
         return decrypt(BUILTIN_TOKEN)
     except Exception:
         return {}

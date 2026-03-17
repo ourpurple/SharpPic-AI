@@ -1,6 +1,6 @@
-from PyQt6.QtWidgets import QLabel, QSizePolicy, QMenu
-from PyQt6.QtCore import Qt, pyqtSignal
-from PyQt6.QtGui import QPixmap, QDragEnterEvent, QDropEvent, QContextMenuEvent, QAction
+﻿from PyQt6.QtCore import Qt, pyqtSignal
+from PyQt6.QtGui import QAction, QContextMenuEvent, QDragEnterEvent, QDropEvent, QPixmap
+from PyQt6.QtWidgets import QLabel, QMenu, QSizePolicy
 
 from src.gui.theme import DROP_ZONE_DEFAULT, DROP_ZONE_HOVER, DROP_ZONE_IMAGE
 
@@ -30,8 +30,13 @@ class ImageDropLabel(QLabel):
 
     def clear_image(self) -> None:
         self._pixmap = None
+        # Force-remove any previously rendered pixmap and repaint immediately.
+        self.setPixmap(QPixmap())
+        self.clear()
         self.setStyleSheet(DROP_ZONE_DEFAULT)
         self.setText(self._placeholder)
+        self.update()
+        self.repaint()
 
     def resizeEvent(self, event):
         super().resizeEvent(event)
@@ -73,20 +78,21 @@ class ImageDropLabel(QLabel):
             return
 
         menu = QMenu(self)
-        
+
         save_action = QAction("另存为...", self)
         save_action.triggered.connect(self.save_requested.emit)
         menu.addAction(save_action)
-        
+
         copy_action = QAction("复制图片", self)
         copy_action.triggered.connect(self._copy_image)
         menu.addAction(copy_action)
-        
+
         menu.exec(event.globalPos())
 
     def _copy_image(self):
         """Copy the current image to clipboard."""
         if self._pixmap:
             from PyQt6.QtWidgets import QApplication
+
             clipboard = QApplication.clipboard()
             clipboard.setPixmap(self._pixmap)

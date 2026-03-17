@@ -70,8 +70,12 @@ def _build_generate_payload(prompt: str, aspect_ratio: str, resolution: str) -> 
 
 def _download_image(url: str) -> str:
     """Download an image and return its base64 encoding."""
-    resp = httpx.get(url, timeout=60)
+    headers = {"User-Agent": "Mozilla/5.0 SharpPic-AI/1.0"}
+    resp = httpx.get(url, timeout=60, follow_redirects=True, headers=headers)
     resp.raise_for_status()
+    content_type = resp.headers.get("content-type", "")
+    if content_type and "image" not in content_type.lower():
+        raise RuntimeError(f"下载到的资源不是图片（content-type={content_type}）")
     return base64.b64encode(resp.content).decode("utf-8")
 
 
@@ -189,3 +193,5 @@ def generate_image(
         on_text("\n⏳ AI 正在生图中")
         result_data = _poll_result(client, request_id, on_text, "生图")
         return _extract_image_b64(result_data, on_text)
+
+

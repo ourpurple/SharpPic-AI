@@ -427,6 +427,10 @@ class MainWindow(QMainWindow):
 
         self._set_processing(True)
         self._output_text.clear()
+        self._result_label.clear_image()
+        self._result_label.repaint()
+        self._result_b64 = None
+        self._save_btn.setEnabled(False)
         self._status.showMessage("正在处理图片，请稍候...")
 
         color_mode = "color" if self._color_checkbox.isChecked() else "grayscale"
@@ -473,6 +477,10 @@ class MainWindow(QMainWindow):
 
         self._set_generating(True)
         self._gen_output_text.clear()
+        self._gen_result_label.clear_image()
+        self._gen_result_label.repaint()
+        self._gen_result_b64 = None
+        self._gen_save_btn.setEnabled(False)
         self._status.showMessage("正在生成图片，请稍候...")
 
         self._gen_worker = GenerateWorker(
@@ -574,3 +582,8 @@ class MainWindow(QMainWindow):
             self._status.showMessage(f"已保存: {path}")
         except Exception as e:
             QMessageBox.critical(self, "保存失败", str(e))
+
+
+
+
+
