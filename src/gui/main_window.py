@@ -117,6 +117,7 @@ class MainWindow(QMainWindow):
         super().__init__()
         self.setWindowTitle(f"SharpPic-AI V{APP_VERSION}")
         self.setMinimumSize(1248, 832)
+        self.resize(1248, 915)
 
         self._source_path: str | None = None
         self._result_b64: str | None = None
@@ -263,8 +264,9 @@ class MainWindow(QMainWindow):
 
         self._gen_prompt_input = QTextEdit()
         self._gen_prompt_input.setPlaceholderText("请输入提示词，例如：一只在雨夜街头打伞的猫，电影感光影")
-        self._gen_prompt_input.setMinimumHeight(210)
-        left_layout.addWidget(self._gen_prompt_input, 3)
+        # Keep enough editing space while avoiding overlap on smaller non-maximized windows.
+        self._gen_prompt_input.setMinimumHeight(160)
+        left_layout.addWidget(self._gen_prompt_input, 2)
 
         prompt_hint = QLabel("建议包含：主体 + 场景 + 光线 + 构图 + 风格关键词。")
         prompt_hint.setObjectName("hintText")
@@ -324,7 +326,7 @@ class MainWindow(QMainWindow):
         self._gen_output_text = QTextEdit()
         self._gen_output_text.setReadOnly(True)
         self._gen_output_text.setPlaceholderText("生图过程信息将在此处实时显示...")
-        left_layout.addWidget(self._gen_output_text, 2)
+        left_layout.addWidget(self._gen_output_text, 1)
 
         splitter.addWidget(left)
 
