@@ -1,5 +1,6 @@
 ﻿import datetime
 import os
+import re
 import tempfile
 from pathlib import Path
 
@@ -578,13 +579,32 @@ class MainWindow(QMainWindow):
     def _save_generated_result(self):
         self._save_image_from_b64(self._gen_result_b64)
 
+    def _sanitize_filename_part(self, text: str) -> str:
+        """Make text safe for Windows filename segments."""
+        cleaned = re.sub(r'[\\/:*?"<>|\s]+', "-", text.strip())
+        cleaned = re.sub(r"-+", "-", cleaned).strip("-._")
+        return cleaned or "unknown"
+
+    def _current_model_label_for_filename(self) -> tuple[str, str]:
+        provider = str(config.get("api_provider") or "openai").lower()
+        provider_label = self._sanitize_filename_part(provider)
+
+        if provider == "gmicloud":
+            model_name = "gemini-3.1-flash-image-preview"
+        else:
+            model_name = str(config.get("model_name") or "unknown-model")
+
+        model_label = self._sanitize_filename_part(model_name)
+        return provider_label, model_label
+
     def _save_image_from_b64(self, image_b64: str | None):
         if not image_b64:
             return
 
         save_dir = config.get("save_directory")
         timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-        default_name = f"sharppic_{timestamp}.png"
+        provider_label, model_label = self._current_model_label_for_filename()
+        default_name = f"sharppic_{provider_label}_{model_label}_{timestamp}.png"
         default_path = str(Path(save_dir) / default_name)
 
         path, _ = QFileDialog.getSaveFileName(
@@ -602,3 +622,4 @@ class MainWindow(QMainWindow):
             self._status.showMessage(f"已保存: {path}")
         except Exception as e:
             QMessageBox.critical(self, "保存失败", str(e))
+
